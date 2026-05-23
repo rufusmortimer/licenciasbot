@@ -30,12 +30,12 @@ Hola! Bienvenido a LicenciasBolivia
 
 Que necesitas hoy?
 
-1 Ver productos y precios
-2 Como funciona la compra?
-3 Hablar con un asesor
-4 Garantia y soporte
+A - Ver productos y precios
+B - Como funciona la compra?
+C - Hablar con un asesor
+D - Garantia y soporte
 
-Responde con el numero de tu opcion
+Responde con la letra de tu opcion
 """
 
 COMO_FUNCIONA = """
@@ -98,20 +98,20 @@ def handle_message(sender_id, message_text):
         send_message(sender_id, MENU_PRINCIPAL)
         return
 
-    if text in ["1", "ver productos", "precios", "productos"]:
+    if text in ["a", "ver productos", "precios", "productos", "comprar"]:
         send_message(sender_id, PRODUCTOS)
-        send_message(sender_id, "Escribe el NUMERO del producto que quieres comprar (ej: 1, 2, 3...) o escribe 3 para hablar con un asesor")
+        send_message(sender_id, "Escribe el NUMERO del producto que quieres comprar (del 1 al 9)")
         return
 
-    if text in ["2", "como funciona", "como comprar"]:
+    if text in ["b", "como funciona", "como comprar"]:
         send_message(sender_id, COMO_FUNCIONA)
         return
 
-    if text in ["3", "asesor", "hablar", "contacto"]:
+    if text in ["c", "asesor", "hablar", "contacto"]:
         send_message(sender_id, "Te conectamos con un asesor ahora mismo!\n\nEscribenos directo por WhatsApp:\nhttps://wa.me/59174222062\n\nO si prefieres, deja tu consulta aqui y te respondemos en minutos.")
         return
 
-    if text in ["4", "garantia", "soporte"]:
+    if text in ["d", "garantia", "soporte"]:
         send_message(sender_id, GARANTIA)
         return
 
@@ -147,7 +147,7 @@ Alguna duda? Escribe 3 para hablar con un asesor"""
         return
 
     # Mensaje no reconocido
-    send_message(sender_id, "Hola! No entendi tu mensaje.\n\nEscribe MENU para ver todas las opciones o el NUMERO de lo que necesitas:\n\n1 - Ver productos\n2 - Como comprar\n3 - Hablar con asesor\n4 - Garantia")
+    send_message(sender_id, "No entendi tu mensaje.\n\nEscribe MENU para ver opciones o la LETRA:\n\nA - Ver productos\nB - Como comprar\nC - Hablar con asesor\nD - Garantia\n\nO escribe el NUMERO del producto (1 al 9) para comprarlo directamente")
 
 
 @app.route("/webhook", methods=["GET"])
