@@ -1,0 +1,184 @@
+import os
+import json
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN", "")
+VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN", "licenciasbot2024")
+
+PRODUCTOS = """
+*Licencias disponibles - Bolivia*
+
+1 Windows 10 Home - Bs. 50
+2 Windows 10 Pro  - Bs. 65
+3 Windows 11 Home - Bs. 55
+4 Windows 11 Pro  - Bs. 70
+5 Office 2021 Home & Student - Bs. 80
+6 Office 2021 Professional  - Bs. 120
+7 Paquete Win 11 Pro + Office 2021 Pro - Bs. 175
+
+Entrega inmediata por WhatsApp
+Activacion garantizada o te devuelvo el dinero
+"""
+
+MENU_PRINCIPAL = """
+Hola! Bienvenido a LicenciasBolivia
+
+Que necesitas hoy?
+
+1 Ver productos y precios
+2 Como funciona la compra?
+3 Hablar con un asesor
+4 Garantia y soporte
+
+Responde con el numero de tu opcion
+"""
+
+COMO_FUNCIONA = """
+Como comprar en 3 pasos simples:
+
+Paso 1 - Elige tu producto y escribenos el numero
+Paso 2 - Te enviamos el QR de pago (Bs. exactos)
+Paso 3 - Confirmas el pago y recibes tu licencia en minutos
+
+Tiempo de entrega: 5-15 minutos
+Disponible: Lunes a Sabado 8am - 9pm
+
+Listo para comprar? Escribe el numero del producto!
+"""
+
+GARANTIA = """
+Nuestra garantia:
+
+Si tu licencia no activa correctamente te la cambiamos sin costo
+Si el problema persiste te devolvemos tu dinero
+Soporte por WhatsApp incluido
+
+Mas de 100 clientes satisfechos en Bolivia
+
+Para continuar escribe 1 para ver productos o 3 para hablar con un asesor
+"""
+
+def send_message(recipient_id, message_text):
+    url = f"https://graph.facebook.com/v19.0/me/messages"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "recipient": {"id": recipient_id},
+        "message": {"text": message_text},
+        "messaging_type": "RESPONSE"
+    }
+    params = {"access_token": PAGE_ACCESS_TOKEN}
+    response = requests.post(url, headers=headers, json=payload, params=params)
+    return response.json()
+
+def send_quick_replies(recipient_id, text, replies):
+    url = f"https://graph.facebook.com/v19.0/me/messages"
+    quick_replies = [{"content_type": "text", "title": r, "payload": r.upper().replace(" ", "_")} for r in replies]
+    payload = {
+        "recipient": {"id": recipient_id},
+        "message": {
+            "text": text,
+            "quick_replies": quick_replies
+        },
+        "messaging_type": "RESPONSE"
+    }
+    params = {"access_token": PAGE_ACCESS_TOKEN}
+    response = requests.post(url, headers=headers, json=payload, params=params)
+    return response.json()
+
+def handle_message(sender_id, message_text):
+    text = message_text.strip().lower()
+
+    saludos = ["hola", "buenos dias", "buenas", "hello", "hi", "buenas tardes", "buenas noches", "hey"]
+    if any(s in text for s in saludos) or text in ["inicio", "menu", "start"]:
+        send_message(sender_id, MENU_PRINCIPAL)
+        return
+
+    if text in ["1", "ver productos", "precios", "productos"]:
+        send_message(sender_id, PRODUCTOS)
+        send_message(sender_id, "Escribe el NUMERO del producto que quieres comprar (ej: 1, 2, 3...) o escribe 3 para hablar con un asesor")
+        return
+
+    if text in ["2", "como funciona", "como comprar"]:
+        send_message(sender_id, COMO_FUNCIONA)
+        return
+
+    if text in ["3", "asesor", "hablar", "contacto"]:
+        send_message(sender_id, "Te conectamos con un asesor ahora mismo!\n\nEscribenos directo por WhatsApp:\nhttps://wa.me/59174222062\n\nO si prefieres, deja tu consulta aqui y te respondemos en minutos.")
+        return
+
+    if text in ["4", "garantia", "soporte"]:
+        send_message(sender_id, GARANTIA)
+        return
+
+    # Seleccion de producto por numero
+    productos_map = {
+        "1": ("Windows 10 Home", "Bs. 50"),
+        "2": ("Windows 10 Pro", "Bs. 65"),
+        "3": ("Windows 11 Home", "Bs. 55"),
+        "4": ("Windows 11 Pro", "Bs. 70"),
+        "5": ("Office 2021 Home & Student", "Bs. 80"),
+        "6": ("Office 2021 Professional", "Bs. 120"),
+        "7": ("Paquete Win 11 Pro + Office 2021 Pro", "Bs. 175"),
+    }
+
+    if text in productos_map:
+        nombre, precio = productos_map[text]
+        respuesta = f"""Excelente eleccion!
+
+Producto: {nombre}
+Precio: {precio}
+
+Para continuar con tu compra:
+1. Escribenos al WhatsApp: https://wa.me/59174222062
+2. Indicanos que quieres {nombre}
+3. Te enviamos el QR de pago
+
+Tu licencia llega en 5-15 minutos luego del pago!
+
+Alguna duda? Escribe 3 para hablar con un asesor"""
+        send_message(sender_id, respuesta)
+        return
+
+    # Mensaje no reconocido
+    send_message(sender_id, "Hola! No entendi tu mensaje.\n\nEscribe MENU para ver todas las opciones o el NUMERO de lo que necesitas:\n\n1 - Ver productos\n2 - Como comprar\n3 - Hablar con asesor\n4 - Garantia")
+
+
+@app.route("/webhook", methods=["GET"])
+def verify_webhook():
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return challenge, 200
+    return "Verification failed", 403
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.get_json()
+
+    if data.get("object") == "page":
+        for entry in data.get("entry", []):
+            for event in entry.get("messaging", []):
+                sender_id = event["sender"]["id"]
+
+                if "message" in event and not event["message"].get("is_echo"):
+                    message_text = event["message"].get("text", "")
+                    if message_text:
+                        handle_message(sender_id, message_text)
+
+    return jsonify({"status": "ok"}), 200
+
+
+@app.route("/")
+def index():
+    return "LicenciasBot activo!", 200
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
