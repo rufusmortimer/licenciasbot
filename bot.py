@@ -58,32 +58,15 @@ Si tu licencia no activa correctamente te la cambiamos sin costo
 Si el problema persiste te devolvemos tu dinero
 Soporte por WhatsApp incluido
 
-Mas de 100 clientes satisfechos en Bolivia
-
-Para continuar escribe 1 para ver productos o 3 para hablar con un asesor
+Para continuar escribe A para ver productos o C para hablar con un asesor
 """
 
 def send_message(recipient_id, message_text):
-    url = f"https://graph.facebook.com/v19.0/me/messages"
+    url = "https://graph.facebook.com/v19.0/me/messages"
     headers = {"Content-Type": "application/json"}
     payload = {
         "recipient": {"id": recipient_id},
         "message": {"text": message_text},
-        "messaging_type": "RESPONSE"
-    }
-    params = {"access_token": PAGE_ACCESS_TOKEN}
-    response = requests.post(url, headers=headers, json=payload, params=params)
-    return response.json()
-
-def send_quick_replies(recipient_id, text, replies):
-    url = f"https://graph.facebook.com/v19.0/me/messages"
-    quick_replies = [{"content_type": "text", "title": r, "payload": r.upper().replace(" ", "_")} for r in replies]
-    payload = {
-        "recipient": {"id": recipient_id},
-        "message": {
-            "text": text,
-            "quick_replies": quick_replies
-        },
         "messaging_type": "RESPONSE"
     }
     params = {"access_token": PAGE_ACCESS_TOKEN}
@@ -115,7 +98,6 @@ def handle_message(sender_id, message_text):
         send_message(sender_id, GARANTIA)
         return
 
-    # Seleccion de producto por numero
     productos_map = {
         "1": ("Windows 10 Home", "Bs. 50"),
         "2": ("Windows 10 Pro", "Bs. 40"),
@@ -130,24 +112,11 @@ def handle_message(sender_id, message_text):
 
     if text in productos_map:
         nombre, precio = productos_map[text]
-        respuesta = f"""Excelente eleccion!
-
-Producto: {nombre}
-Precio: {precio}
-
-Para continuar con tu compra:
-1. Escribenos al WhatsApp: https://wa.me/59174222062
-2. Indicanos que quieres {nombre}
-3. Te enviamos el QR de pago
-
-Tu licencia llega en 5-15 minutos luego del pago!
-
-Alguna duda? Escribe 3 para hablar con un asesor"""
+        respuesta = f"Excelente eleccion!\n\nProducto: {nombre}\nPrecio: {precio}\n\nPara continuar:\n1. Escribenos al WhatsApp: https://wa.me/59174222062\n2. Indicanos que quieres {nombre}\n3. Te enviamos el QR de pago\n\nTu licencia llega en 5-15 minutos luego del pago!"
         send_message(sender_id, respuesta)
         return
 
-    # Mensaje no reconocido
-    send_message(sender_id, "No entendi tu mensaje.\n\nEscribe MENU para ver opciones o la LETRA:\n\nA - Ver productos\nB - Como comprar\nC - Hablar con asesor\nD - Garantia\n\nO escribe el NUMERO del producto (1 al 9) para comprarlo directamente")
+    send_message(sender_id, "No entendi tu mensaje.\n\nEscribe MENU para ver opciones:\n\nA - Ver productos\nB - Como comprar\nC - Hablar con asesor\nD - Garantia\n\nO escribe el NUMERO del producto (1 al 9) para comprarlo directamente")
 
 
 @app.route("/webhook", methods=["GET"])
