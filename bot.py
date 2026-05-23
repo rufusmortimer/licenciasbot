@@ -9,15 +9,17 @@ PAGE_ACCESS_TOKEN = os.environ.get("PAGE_ACCESS_TOKEN", "")
 VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN", "licenciasbot2024")
 
 PRODUCTOS = """
-*Licencias disponibles - Bolivia*
+Licencias disponibles - Bolivia
 
-1 Windows 10 Home - Bs. 50
-2 Windows 10 Pro  - Bs. 65
-3 Windows 11 Home - Bs. 55
-4 Windows 11 Pro  - Bs. 70
-5 Office 2021 Home & Student - Bs. 80
-6 Office 2021 Professional  - Bs. 120
-7 Paquete Win 11 Pro + Office 2021 Pro - Bs. 175
+1 Windows 10 Home           - Bs. 50
+2 Windows 10 Pro            - Bs. 40
+3 Windows 11 Home           - Bs. 50
+4 Windows 11 Pro            - Bs. 45
+5 Office 2024 Pro Plus      - Bs. 50
+6 Office 2021 Pro Plus      - Bs. 50
+7 Office 2019 Pro Plus      - Bs. 50
+8 Office 2016 Pro Plus      - Bs. 50
+9 Paquete Win 11 Pro + Office 2024/2021/2019/2016 - Bs. 70
 
 Entrega inmediata por WhatsApp
 Activacion garantizada o te devuelvo el dinero
@@ -116,12 +118,14 @@ def handle_message(sender_id, message_text):
     # Seleccion de producto por numero
     productos_map = {
         "1": ("Windows 10 Home", "Bs. 50"),
-        "2": ("Windows 10 Pro", "Bs. 65"),
-        "3": ("Windows 11 Home", "Bs. 55"),
-        "4": ("Windows 11 Pro", "Bs. 70"),
-        "5": ("Office 2021 Home & Student", "Bs. 80"),
-        "6": ("Office 2021 Professional", "Bs. 120"),
-        "7": ("Paquete Win 11 Pro + Office 2021 Pro", "Bs. 175"),
+        "2": ("Windows 10 Pro", "Bs. 40"),
+        "3": ("Windows 11 Home", "Bs. 50"),
+        "4": ("Windows 11 Pro", "Bs. 45"),
+        "5": ("Office 2024 Professional Plus", "Bs. 50"),
+        "6": ("Office 2021 Pro Plus", "Bs. 50"),
+        "7": ("Office 2019 Pro Plus", "Bs. 50"),
+        "8": ("Office 2016 Pro Plus", "Bs. 50"),
+        "9": ("Paquete Win 11 Pro + Office 2024/2021/2019/2016 Pro", "Bs. 70"),
     }
 
     if text in productos_map:
